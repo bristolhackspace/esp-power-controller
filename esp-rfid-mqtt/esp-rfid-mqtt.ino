@@ -4,6 +4,7 @@
   - connects to an MQTT server
   - publishes "hello world" to the topic "outTopic"
   - subscribes to the topic "inTopic"
+https://github.com/Imroy/pubsubclient
 */
 
 #include <ESP8266WiFi.h>
