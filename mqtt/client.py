@@ -6,23 +6,22 @@ def on_connect(client, userdata, flags, rc):
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
-    client.subscribe("/arduino/#")
+    client.subscribe("arduino/#")
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
 
-    if msg.topic == '/arduino/uptime':
+    if msg.topic == 'arduino/uptime':
         uptime = int(msg.payload)
         print("uptime = %d" % uptime)
-    elif msg.topic == '/arduino/rfid':
+    elif msg.topic == 'arduino/rfid/unknown':
         rfid = msg.payload
-        print("got rfid %s" % rfid)
+        print("got unknown rfid %s" % rfid)
         if rfid == "cb5b3f5b":
-            print("sending power = on")
-            r = client.publish("/arduino/power", True)
+            print("valid")
+            r = client.publish("arduino/rfid/valid", rfid)
         else:
-            print("sending power = off")
-            r = client.publish("/arduino/power", False)
+            print("invalid")
     else:
         print(msg.topic+" "+str(msg.payload))
         

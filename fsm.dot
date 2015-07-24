@@ -1,0 +1,28 @@
+
+            
+digraph G {
+    START;
+    START_WIFI;
+    START_MQTT;
+    READ_RFID;
+    VALID_RFID[label="valid rfid; turn on tool"];
+    UNKNOWN_RFID;
+    VALID_REMOVED[label="rfid removed; turn off tool"];
+    CHECK_CONNECTED;
+
+    START -> START_WIFI;
+    START_WIFI -> START_MQTT[label="WiFi connected"];
+    START_WIFI -> START_WIFI[label="WiFi not connected"];
+    START_MQTT -> READ_RFID[label="MQTT connected"];
+    START_MQTT -> START_WIFI[label="MQTT not connected"];
+    READ_RFID -> VALID_RFID[label="rfid present & valid rfid"];
+    READ_RFID -> UNKNOWN_RFID[label="rfid present & invalid rfid"];
+    READ_RFID -> CHECK_CONNECTED[label="no rfid"];
+    CHECK_CONNECTED -> READ_RFID[label="MQTT connected"];
+    CHECK_CONNECTED -> START_WIFI[label="MQTT not connected"];
+    VALID_RFID -> VALID_REMOVED[label="no rfid"];
+    VALID_RFID -> VALID_RFID[label="same rfid present"];
+    UNKNOWN_RFID -> READ_RFID[label="publish unknown rfid"];
+    VALID_REMOVED -> READ_RFID[label="rfid removed"];
+
+}
