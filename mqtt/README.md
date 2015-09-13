@@ -8,5 +8,18 @@ Perhaps split into 2 mqtt clients:
 
 # Requirements
 
-* paho.mqtt.client 
+use pip -r requirements
 
+* paho-mqtt
+
+## mosquitto 1.4.3
+
+new version of mosquitto required for arduino pubsub client library.
+
+first install:
+
+* libc-ares-dev
+* libc-ares2
+* uuid-dev
+
+then [download and compile mosquitto](http://mosquitto.org/download/)

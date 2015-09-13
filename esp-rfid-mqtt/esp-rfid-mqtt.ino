@@ -9,6 +9,8 @@ uses mqtt pubsub library from https://github.com/Imroy/pubsubclient
 #define SS_PIN 15
 #define RST_PIN 5
 
+#define TOOL_ID 2
+
 //FSM states
 #define S_START 0
 #define S_START_WIFI 1
@@ -21,11 +23,12 @@ uses mqtt pubsub library from https://github.com/Imroy/pubsubclient
 
 int fsm_state_user = S_START;
 
-const char *ssid =	"flat5";		// cannot be longer than 32 characters!
-const char *pass =	"matt&inma";		//
+const char *ssid =	"hackspace";		// cannot be longer than 32 characters!
+const char *pass =	"Altman37";		//
 
 // Update these with values suitable for your network.
-IPAddress server(192,168,0,9);
+//IPAddress server(10,255,157,76);
+IPAddress server(192,168,0,116);
 String current_rfid = "";
 
 #define rfid_cache_size 10
@@ -40,7 +43,7 @@ void callback(const MQTT::Publish& pub)
     Serial.print(pub.topic());
     Serial.print("=");
     Serial.println(pub.payload_string());
-    if(pub.topic() == "arduino/rfid/valid")
+    if(pub.topic() == "tools/2/rfid/valid") //TODO, fix hardcoded tool id
     {
         valid_rfids[cache_index++] = pub.payload_string();
         if(cache_index > rfid_cache_size)
@@ -75,23 +78,23 @@ void loop()
         case S_START_WIFI:
             Serial.print("Connecting to ");
             Serial.print(ssid);
-            Serial.println("...");
             WiFi.begin(ssid, pass);
-            if (WiFi.status() != WL_CONNECTED) 
+            while(WiFi.status() != WL_CONNECTED) 
             {
-                if (WiFi.waitForConnectResult() != WL_CONNECTED)
-                    break;
+                Serial.print(".");
+                delay(500);
             }
             Serial.println("WiFi connected");
+            Serial.println(WiFi.localIP());
             fsm_state_user = S_START_MQTT;
             break;
 
         case S_START_MQTT:
-            //connect to mqtt broker with id = arduinoClient
-            if(client.connect("arduinoClient"))
+            //connect to mqtt broker with id = 2
+            if(client.connect("2"))
             {
                 Serial.println("mqtt connected");
-                client.subscribe("arduino/rfid/valid");
+                client.subscribe("tools/2/rfid/valid");
                 fsm_state_user = S_READ_RFID;
             }
             else
@@ -126,25 +129,26 @@ void loop()
         case S_VALID_RFID:
             Serial.println("valid rfid present");
             digitalWrite(LED, HIGH);
-            client.publish("arduino/power","on");
+            client.publish("tools/2/power","on");
             if(read_rfid() != current_rfid)
                 fsm_state_user = S_VALID_REMOVED;
             break;
 
         case S_UNKNOWN_RFID:
             Serial.println("invalid rfid present");
-            client.publish("arduino/rfid/unknown", current_rfid);
+            client.publish("tools/2/rfid/unknown", current_rfid);
             fsm_state_user = S_READ_RFID;
             break;
 
         case S_VALID_REMOVED:
             Serial.println("valid rfid removed");
+            client.publish("tools/2/power","off");
             fsm_state_user = S_READ_RFID;
             digitalWrite(LED, LOW);
             break;
             
     }
-    client.publish("arduino/uptime",String(millis()));
+    client.publish("tools/2/uptime",String(millis()));
     Serial.print("fsm state=");
     Serial.println(fsm_state_user);
     client.loop();
